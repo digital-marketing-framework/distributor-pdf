@@ -2,6 +2,10 @@
 
 namespace DigitalMarketingFramework\Distributor\Pdf\DataProvider;
 
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\SchemaInterface;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\BooleanSchema;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\MapSchema;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\StringSchema;
 use DigitalMarketingFramework\Core\Context\ContextInterface;
 use DigitalMarketingFramework\Distributor\Core\DataProvider\DataProvider;
 use DigitalMarketingFramework\Distributor\Pdf\Service\PdfService;
@@ -26,7 +30,7 @@ class PdfDataProvider extends DataProvider
     public const DEFAULT_PDF_FORM_FIELDS = [];
 
     public const KEY_USE_CHECKBOX_PARSER = 'useCheckboxParser';
-    public const DEFAULT_USE_CHECKBOX_PARSER = '0';
+    public const DEFAULT_USE_CHECKBOX_PARSER = 0;
 
     /**
      * @param array<string, string> $config
@@ -77,24 +81,16 @@ class PdfDataProvider extends DataProvider
             $this->setField($submission, $this->getConfig(static::KEY_FIELD), $pdfField);
         }
     }
-
-    /**
-     * @return array<string, string>
-     */
-    public static function getDefaultConfiguration(): array
+    
+    public static function getSchema(): SchemaInterface
     {
-        return parent::getDefaultConfiguration() + [
-            static::KEY_FIELD => static::DEFAULT_FIELD,
-            static::KEY_PDF_TEMPLATE_PATH => static::DEFAULT_PDF_FORM_FIELDS,
-            static::KEY_PDF_OUTPUT_DIR => static::DEFAULT_PDF_OUTPUT_DIR,
-            static::KEY_PDF_OUTPUT_NAME => static::DEFAULT_PDF_OUTPUT_NAME,
-            static::KEY_PDF_FORM_FIELDS => static::DEFAULT_PDF_FORM_FIELDS,
-            static::KEY_USE_CHECKBOX_PARSER => static::DEFAULT_USE_CHECKBOX_PARSER,
-        ];
-    }
-
-    public function getWeight(): int
-    {
-        return 99;
+        $schema = parent::getSchema();
+        $schema->addProperty(static::KEY_FIELD, new StringSchema(static::DEFAULT_FIELD));
+        $schema->addProperty(static::KEY_PDF_TEMPLATE_PATH, new StringSchema(static::DEFAULT_PDF_FORM_FIELDS));
+        $schema->addProperty(static::KEY_PDF_OUTPUT_DIR, new StringSchema(static::DEFAULT_PDF_OUTPUT_DIR));
+        $schema->addProperty(static::KEY_PDF_OUTPUT_NAME, new StringSchema(static::DEFAULT_PDF_OUTPUT_NAME));
+        $schema->addProperty(static::KEY_PDF_FORM_FIELDS, new MapSchema(new StringSchema()));
+        $schema->addProperty(static::KEY_USE_CHECKBOX_PARSER, new BooleanSchema(static::DEFAULT_USE_CHECKBOX_PARSER));
+        return $schema;
     }
 }
