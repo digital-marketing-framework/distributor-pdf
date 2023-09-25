@@ -1,0 +1,65 @@
+{
+	"name": "digital-marketing-framework/distributor-pdf",
+	"type": "library",
+	"description": "Data Provider for PDFs with fillable form fields.",
+	"keywords": [
+		"framework",
+		"form",
+		"data",
+		"submission",
+		"relay",
+		"pdf",
+		"formhandler"
+	],
+	"homepage": "https://www.mediatis.de",
+	"license": "GPL-2.0+",
+	"authors": [
+		{
+			"name": "Michael Vöhringer",
+			"role": "Developer"
+		},
+		{
+			"name": "Meelis Karulin",
+			"role": "Developer"
+		},
+		{
+			"name": "Damian Ickler",
+			"role": "Developer"
+		},
+		{
+			"name": "Stephan Ude",
+			"role": "Developer"
+		},
+		{
+			"name": "Daniel Bagel",
+			"role": "Developer"
+		}
+	],
+	"minimum-stability": "dev",
+	"require": {
+		"php": "^8.1",
+		"digital-marketing-framework/distributor-core": "dev-main",
+		"tmw/fpdm": "^2.9"
+	},
+	"require-dev": {
+		"friendsofphp/php-cs-fixer": "^3.27",
+		"phpstan/phpstan": "^1.10",
+		"phpunit/phpunit": "^9.5",
+		"rector/rector": "^0.18.3"
+	},
+	"config": {
+		"sort-packages": true
+	},
+	"autoload": {
+		"psr-4": {
+			"DigitalMarketingFramework\\Distributor\\Pdf\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"DigitalMarketingFramework\\Distributor\\Pdf\\Tests\\": "tests/",
+			"DigitalMarketingFramework\\Distributor\\Core\\Tests\\": "vendor/digital-marketing-framework/distributor-core/tests/",
+			"DigitalMarketingFramework\\Core\\Tests\\": "vendor/digital-marketing-framework/core/tests/"
+		}
+	}
+}
