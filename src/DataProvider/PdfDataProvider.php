@@ -7,6 +7,7 @@ use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\B
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\MapSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\StringSchema;
 use DigitalMarketingFramework\Core\Context\ContextInterface;
+use DigitalMarketingFramework\Core\Model\Data\Value\FileValue;
 use DigitalMarketingFramework\Distributor\Core\DataProvider\DataProvider;
 use DigitalMarketingFramework\Distributor\Pdf\Service\PdfService;
 
@@ -32,53 +33,24 @@ class PdfDataProvider extends DataProvider
     public const KEY_USE_CHECKBOX_PARSER = 'useCheckboxParser';
     public const DEFAULT_USE_CHECKBOX_PARSER = 0;
 
-    /**
-     * @param array<string, string> $config
-     */
-    protected function resolveContent(array $config, ConfigurationResolverContextInterface $context): ?string
-    {
-        /** @var GeneralContentResolver $contentResolver */
-        $contentResolver = $this->registry->getContentResolver('general', $config, $context);
-        return $contentResolver->resolve();
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    protected function getPdfFormFields(SubmissionInterface $submission): array
-    {
-        $fields = $this->getConfig(static::KEY_PDF_FORM_FIELDS);
-        $result = [];
-        if (isset($fields)) {
-            $baseContext = new ConfigurationResolverContext($submission);
-            foreach ($fields as $pdfFieldName => $pdfFieldConfig) {
-                $pdfFieldValue = $this->resolveContent($pdfFieldConfig, $baseContext->copy());
-                if ($pdfFieldValue !== null) {
-                    $result[$pdfFieldName] = $pdfFieldValue;
-                }
-            }
-        }
-        return $result;
-    }
-
     protected function processContext(ContextInterface $context): void
     {
     }
 
     protected function process(): void
     {
-        $serviceObject = GeneralUtility::makeInstance(InvoiceService::class);
         $settings = [
             'pdfTemplatePath' => $this->getConfig(static::KEY_PDF_TEMPLATE_PATH),
             'pdfOutputDir' => $this->getConfig(static::KEY_PDF_OUTPUT_DIR),
             'pdfOutputName' => $this->getConfig(static::KEY_PDF_OUTPUT_NAME),
-            'pdfFormFields' => $this->getPdfFormFields($submission),
+            'pdfFormFields' => $this->getMapConfig(static::KEY_PDF_FORM_FIELDS),
             'useCheckboxParser' => $this->getConfig(static::KEY_USE_CHECKBOX_PARSER)
         ];
+        $serviceObject = GeneralUtility::makeInstance(PdfService::class);
         $pdf = $serviceObject->generatePdf($settings);
         if (is_array($pdf)) {
-            $pdfField = UploadField::unpack($pdf);
-            $this->setField($submission, $this->getConfig(static::KEY_FIELD), $pdfField);
+            $pdfField = FileValue::unpack($pdf);
+            $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
         }
     }
     
@@ -86,7 +58,7 @@ class PdfDataProvider extends DataProvider
     {
         $schema = parent::getSchema();
         $schema->addProperty(static::KEY_FIELD, new StringSchema(static::DEFAULT_FIELD));
-        $schema->addProperty(static::KEY_PDF_TEMPLATE_PATH, new StringSchema(static::DEFAULT_PDF_FORM_FIELDS));
+        $schema->addProperty(static::KEY_PDF_TEMPLATE_PATH, new StringSchema(static::DEFAULT_PDF_TEMPLATE_PATH));
         $schema->addProperty(static::KEY_PDF_OUTPUT_DIR, new StringSchema(static::DEFAULT_PDF_OUTPUT_DIR));
         $schema->addProperty(static::KEY_PDF_OUTPUT_NAME, new StringSchema(static::DEFAULT_PDF_OUTPUT_NAME));
         $schema->addProperty(static::KEY_PDF_FORM_FIELDS, new MapSchema(new StringSchema()));
