@@ -4,17 +4,24 @@ namespace DigitalMarketingFramework\Distributor\Pdf\DataProvider;
 
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\SchemaInterface;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\BooleanSchema;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\CustomSchema;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\Custom\ValueSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\MapSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\StringSchema;
 use DigitalMarketingFramework\Core\Context\ContextInterface;
+use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareInterface;
+use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareTrait;
+use DigitalMarketingFramework\Core\DataProcessor\DataProcessorContext;
 use DigitalMarketingFramework\Core\Model\Data\Value\FileValue;
 use DigitalMarketingFramework\Distributor\Core\DataProvider\DataProvider;
 use DigitalMarketingFramework\Distributor\Pdf\Service\PdfService;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class PdfDataProvider extends DataProvider
+class PdfDataProvider extends DataProvider implements DataProcessorAwareInterface
 {
+    use DataProcessorAwareTrait;
+    
     public const KEY_FIELD = 'field';
     public const DEFAULT_FIELD = 'pdf_form';
 
@@ -31,7 +38,7 @@ class PdfDataProvider extends DataProvider
     public const DEFAULT_PDF_FORM_FIELDS = [];
 
     public const KEY_USE_CHECKBOX_PARSER = 'useCheckboxParser';
-    public const DEFAULT_USE_CHECKBOX_PARSER = 0;
+    public const DEFAULT_USE_CHECKBOX_PARSER = false;
 
     protected function processContext(ContextInterface $context): void
     {
@@ -39,13 +46,26 @@ class PdfDataProvider extends DataProvider
 
     protected function process(): void
     {
+        $dataProcessorContext = new DataProcessorContext($this->submission->getData(), $this->submission->getConfiguration());
+        $pdfFormFields = [];
+        $pdfFormFieldsMap = $this->getMapConfig(static::KEY_PDF_FORM_FIELDS);
+        if (isset($pdfFormFieldsMap)) {
+            foreach ($pdfFormFieldsMap as $pdfFieldName => $pdfFieldConfig) {
+                $pdfFieldValue = $this->dataProcessor->processValue($pdfFieldConfig, $dataProcessorContext);
+                if ($pdfFieldValue !== null) {
+                    $pdfFormFields[$pdfFieldName] = $pdfFieldValue;
+                }
+            }
+        }
+        
         $settings = [
             'pdfTemplatePath' => $this->getConfig(static::KEY_PDF_TEMPLATE_PATH),
             'pdfOutputDir' => $this->getConfig(static::KEY_PDF_OUTPUT_DIR),
             'pdfOutputName' => $this->getConfig(static::KEY_PDF_OUTPUT_NAME),
-            'pdfFormFields' => $this->getMapConfig(static::KEY_PDF_FORM_FIELDS),
+            'pdfFormFields' => $pdfFormFields,
             'useCheckboxParser' => $this->getConfig(static::KEY_USE_CHECKBOX_PARSER)
         ];
+        
         $serviceObject = GeneralUtility::makeInstance(PdfService::class);
         $pdf = $serviceObject->generatePdf($settings);
         if (is_array($pdf)) {
@@ -61,7 +81,7 @@ class PdfDataProvider extends DataProvider
         $schema->addProperty(static::KEY_PDF_TEMPLATE_PATH, new StringSchema(static::DEFAULT_PDF_TEMPLATE_PATH));
         $schema->addProperty(static::KEY_PDF_OUTPUT_DIR, new StringSchema(static::DEFAULT_PDF_OUTPUT_DIR));
         $schema->addProperty(static::KEY_PDF_OUTPUT_NAME, new StringSchema(static::DEFAULT_PDF_OUTPUT_NAME));
-        $schema->addProperty(static::KEY_PDF_FORM_FIELDS, new MapSchema(new StringSchema()));
+        $schema->addProperty(static::KEY_PDF_FORM_FIELDS, new MapSchema(new CustomSchema(ValueSchema::TYPE)));
         $schema->addProperty(static::KEY_USE_CHECKBOX_PARSER, new BooleanSchema(static::DEFAULT_USE_CHECKBOX_PARSER));
         return $schema;
     }
