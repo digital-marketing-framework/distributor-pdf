@@ -3,6 +3,7 @@
 namespace DigitalMarketingFramework\Distributor\Pdf\DataProvider;
 
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\BooleanSchema;
+use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\ContainerSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\Custom\ValueSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\CustomSchema;
 use DigitalMarketingFramework\Core\ConfigurationDocument\SchemaDocument\Schema\MapSchema;
@@ -14,8 +15,9 @@ use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareTrait;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorContext;
 use DigitalMarketingFramework\Core\Model\Data\Value\FileValue;
 use DigitalMarketingFramework\Distributor\Core\DataProvider\DataProvider;
+use DigitalMarketingFramework\Distributor\Core\Model\DataSet\SubmissionDataSetInterface;
+use DigitalMarketingFramework\Distributor\Core\Registry\RegistryInterface;
 use DigitalMarketingFramework\Distributor\Pdf\Service\PdfService;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class PdfDataProvider extends DataProvider implements DataProcessorAwareInterface
 {
@@ -45,6 +47,15 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     public const DEFAULT_USE_CHECKBOX_PARSER = false;
 
+    public function __construct(
+        string $keyword,
+        RegistryInterface $registry,
+        SubmissionDataSetInterface $submission,
+        protected PdfService $pdfService
+    ) {
+        parent::__construct($keyword, $registry, $submission);
+    }
+
     protected function processContext(ContextInterface $context): void
     {
     }
@@ -69,8 +80,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
             'useCheckboxParser' => $this->getConfig(static::KEY_USE_CHECKBOX_PARSER),
         ];
 
-        $serviceObject = GeneralUtility::makeInstance(PdfService::class);
-        $pdf = $serviceObject->generatePdf($settings);
+        $pdf = $this->pdfService->generatePdf($settings);
         if (is_array($pdf)) {
             $pdfField = FileValue::unpack($pdf);
             $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
@@ -79,6 +89,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     public static function getSchema(): SchemaInterface
     {
+        /** @var ContainerSchema */
         $schema = parent::getSchema();
         $schema->addProperty(static::KEY_FIELD, new StringSchema(static::DEFAULT_FIELD));
         $schema->addProperty(static::KEY_PDF_TEMPLATE_PATH, new StringSchema(static::DEFAULT_PDF_TEMPLATE_PATH));

@@ -28,7 +28,7 @@ class PdfService
         $generatedPdf = $tempDir . '/' . $settings['pdfOutputName'];
 
         try {
-            $pdf = new FPDM($settings['pdfTemplatePath']);
+            $pdf = new FPDM($settings['pdfTemplatePath']); // @phpstan-ignore-line because the FPDM constructor gets its arguments via func_get_args()
             if ($settings['useCheckboxParser']) {
                 $pdf->useCheckboxParser = true;
             }
@@ -57,7 +57,8 @@ class PdfService
 
         $dir .= uniqid('pdf_') . '_';
         $tries = 0;
-        for ($tries = 0; $tries < $maxTries && file_exists($dir . $tries); ++$tries) {
+        while ($tries < $maxTries && file_exists($dir . $tries)) {
+            ++$tries;
         }
 
         $dir .= $tries;

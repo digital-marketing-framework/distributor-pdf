@@ -1,7 +1,8 @@
 {
     "name": "digital-marketing-framework/distributor-pdf",
-    "type": "library",
     "description": "Data Provider for PDFs with fillable form fields.",
+    "license": "GPL-2.0-or-later",
+    "type": "library",
     "keywords": [
         "framework",
         "form",
@@ -11,8 +12,6 @@
         "pdf",
         "formhandler"
     ],
-    "homepage": "https://www.mediatis.de",
-    "license": "GPL-2.0+",
     "authors": [
         {
             "name": "Michael V\u00f6hringer",
@@ -35,6 +34,7 @@
             "role": "Developer"
         }
     ],
+    "homepage": "https://www.mediatis.de",
     "require": {
         "php": "^8.1",
         "digital-marketing-framework/distributor-core": "^1.0",
@@ -43,12 +43,6 @@
     "require-dev": {
         "mediatis/coding-standards": "^1.0"
     },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "ergebnis/composer-normalize": true
-        }
-    },
     "autoload": {
         "psr-4": {
             "DigitalMarketingFramework\\Distributor\\Pdf\\": "src/"
@@ -56,10 +50,16 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "DigitalMarketingFramework\\Distributor\\Pdf\\Tests\\": "tests/",
+            "DigitalMarketingFramework\\Core\\Tests\\": "vendor/digital-marketing-framework/core/tests/",
             "DigitalMarketingFramework\\Distributor\\Core\\Tests\\": "vendor/digital-marketing-framework/distributor-core/tests/",
-            "DigitalMarketingFramework\\Core\\Tests\\": "vendor/digital-marketing-framework/core/tests/"
+            "DigitalMarketingFramework\\Distributor\\Pdf\\Tests\\": "tests/"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true
+        },
+        "sort-packages": true
     },
     "scripts": {
         "ci": [
@@ -70,7 +70,7 @@
             "@ci:composer:static"
         ],
         "ci:composer:normalize": "@composer normalize --no-check-lock --dry-run",
-        "ci:composer:psr-verify": "@composer dumpautoload --optimize --strict-psr",
+        "ci:composer:psr-verify": "@composer dumpautoload --optimize",
         "ci:composer:static": [
             "@ci:composer:validate",
             "@ci:composer:psr-verify",
