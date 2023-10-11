@@ -14,23 +14,9 @@
     ],
     "authors": [
         {
-            "name": "Michael V\u00f6hringer",
-            "role": "Developer"
-        },
-        {
-            "name": "Meelis Karulin",
-            "role": "Developer"
-        },
-        {
-            "name": "Damian Ickler",
-            "role": "Developer"
-        },
-        {
-            "name": "Stephan Ude",
-            "role": "Developer"
-        },
-        {
-            "name": "Daniel Bagel",
+            "name": "Mediatis AG",
+            "email": "info@mediatis.de",
+            "homepage": "https://www.mediatis.de",
             "role": "Developer"
         }
     ],

@@ -41,8 +41,6 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     public const KEY_PDF_FORM_FIELDS = 'pdfFormFields';
 
-    public const DEFAULT_PDF_FORM_FIELDS = [];
-
     public const KEY_USE_CHECKBOX_PARSER = 'useCheckboxParser';
 
     public const DEFAULT_USE_CHECKBOX_PARSER = false;
