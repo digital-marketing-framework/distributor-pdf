@@ -4,13 +4,11 @@ namespace DigitalMarketingFramework\Distributor\Pdf\Service;
 
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareInterface;
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareTrait;
-use DigitalMarketingFramework\Typo3\Core\Utility\VendorAssetUtility;
 use Exception;
 use FPDM;
 
 class PdfService implements FileStorageAwareInterface
 {
-
     use FileStorageAwareTrait;
 
     /**
@@ -43,9 +41,11 @@ class PdfService implements FileStorageAwareInterface
             if (!$uniqueOutputDir) {
                 return false;
             }
+
             $generatedPdf = $uniqueOutputDir . '/' . $settings['pdfOutputName'];
             $this->fileStorage->putFileContents($generatedPdf, $mergedContent);
             unlink($tempFile);
+
             return ['fileName' => $settings['pdfOutputName'], 'publicUrl' => $generatedPdf, 'relativePath' => $generatedPdf, 'mimeType' => mime_content_type($generatedPdf)];
         } catch (Exception) {
             // TODO: REALLY catch errors like "FPDF-Merge Error: field companyname not found"
@@ -75,6 +75,7 @@ class PdfService implements FileStorageAwareInterface
         if ($this->fileStorage->folderExists($dir)) {
             return $dir;
         }
+
         return false;
     }
 }
