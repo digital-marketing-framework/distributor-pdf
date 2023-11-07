@@ -5,8 +5,8 @@ namespace DigitalMarketingFramework\Distributor\Pdf\Service;
 use DigitalMarketingFramework\Core\Exception\DigitalMarketingFrameworkException;
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareInterface;
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareTrait;
+use DigitalMarketingFramework\Distributor\Pdf\FPDM;
 use Exception;
-use FPDM;
 
 class PdfService implements FileStorageAwareInterface
 {
@@ -37,6 +37,8 @@ class PdfService implements FileStorageAwareInterface
             $pdf->Load($processedFields, true);
             $pdf->Merge();
             $pdf->Output('F', $tempFile);
+
+
             $mergedContent = file_get_contents($tempFile);
             $uniqueOutputDir = $this->createUniqueDirectory($settings['pdfOutputDir']);
             if (!$uniqueOutputDir) {
