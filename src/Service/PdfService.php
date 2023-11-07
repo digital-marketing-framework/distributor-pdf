@@ -2,6 +2,7 @@
 
 namespace DigitalMarketingFramework\Distributor\Pdf\Service;
 
+use DigitalMarketingFramework\Core\Exception\DigitalMarketingFrameworkException;
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareInterface;
 use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareTrait;
 use Exception;
@@ -47,9 +48,8 @@ class PdfService implements FileStorageAwareInterface
             unlink($tempFile);
 
             return ['fileName' => $settings['pdfOutputName'], 'publicUrl' => $generatedPdf, 'relativePath' => $generatedPdf, 'mimeType' => mime_content_type($generatedPdf)];
-        } catch (Exception) {
-            // TODO: REALLY catch errors like "FPDF-Merge Error: field companyname not found"
-            return false;
+        } catch (Exception $e) {
+            throw new DigitalMarketingFrameworkException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
