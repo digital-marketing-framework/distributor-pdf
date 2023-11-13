@@ -102,9 +102,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
         $pdfField->setRelativePath($pdfFileIdentifier);
         $pdfField->setMimeType('application/pdf');
         $pdfField->setPublicUrl($this->fileStorage->getPublicUrl($pdfFileIdentifier));
-        if ($pdfField) {
-            $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
-        }
+        $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
     }
 
     public static function getSchema(): SchemaInterface
