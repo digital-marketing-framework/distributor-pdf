@@ -15,44 +15,34 @@ class PdfService implements FileStorageAwareInterface
     /**
      * @param array<mixed> $settings
      *
-     * @return array<mixed>|bool
+     * @return string|bool the file identifier
      */
-    public function generatePdf(array $settings): array|bool
+    public function generatePdf(array $settings): string|bool
     {
         if (!is_array($settings['pdfFormFields']) || $settings['pdfOutputDir'] == '' || $settings['pdfOutputName'] == '' || $settings['pdfTemplatePath'] == '' || $settings['pdfTemplatePath'] == '') {
             return false;
         }
-
         $processedFields = $settings['pdfFormFields'];
-
         $templateContents = $this->fileStorage->getFileContents($settings['pdfTemplatePath']);
         $tempFile = $this->fileStorage->writeTempFile('', $templateContents, '.pdf');
-
-        try {
-            $pdf = new FPDM($tempFile); // @phpstan-ignore-line because the FPDM constructor gets its arguments via func_get_args()
-            if ($settings['useCheckboxParser']) {
-                $pdf->useCheckboxParser = true;
+        $outputDir = $settings['pdfOutputDir'];
+        $generatedPdfIdentifier = $outputDir . '/' . $settings['pdfOutputName'];
+        if (!$this->fileStorage->fileExists($generatedPdfIdentifier)) {
+            try {
+                $pdf = new FPDM($tempFile); // @phpstan-ignore-line because the FPDM constructor gets its arguments via func_get_args()
+                if ($settings['useCheckboxParser']) {
+                    $pdf->useCheckboxParser = true;
+                }
+                $pdf->Load($processedFields, true);
+                $pdf->Merge();
+                $pdf->Output('F', $tempFile);
+                $mergedContent = file_get_contents($tempFile);
+                $this->fileStorage->putFileContents($generatedPdfIdentifier, $mergedContent);
+            } catch (Exception $e) {
+                throw new DigitalMarketingFrameworkException($e->getMessage(), $e->getCode(), $e);
             }
-
-            $pdf->Load($processedFields, true);
-            $pdf->Merge();
-            $pdf->Output('F', $tempFile);
-
-
-            $mergedContent = file_get_contents($tempFile);
-            $uniqueOutputDir = $this->createUniqueDirectory($settings['pdfOutputDir']);
-            if (!$uniqueOutputDir) {
-                return false;
-            }
-
-            $generatedPdf = $uniqueOutputDir . '/' . $settings['pdfOutputName'];
-            $this->fileStorage->putFileContents($generatedPdf, $mergedContent);
-            unlink($tempFile);
-
-            return ['fileName' => $settings['pdfOutputName'], 'publicUrl' => $generatedPdf, 'relativePath' => $generatedPdf, 'mimeType' => mime_content_type($generatedPdf)];
-        } catch (Exception $e) {
-            throw new DigitalMarketingFrameworkException($e->getMessage(), $e->getCode(), $e);
         }
+        return $generatedPdfIdentifier;
     }
 
     /**
@@ -60,7 +50,7 @@ class PdfService implements FileStorageAwareInterface
      *
      * @return string|bool
      */
-    private function createUniqueDirectory(string $dir, int $maxTries = 500)
+    public function createUniqueDirectory(string $dir, int $maxTries = 500)
     {
         if (!$this->fileStorage->folderExists($dir)) {
             $this->fileStorage->createFolder($dir);
