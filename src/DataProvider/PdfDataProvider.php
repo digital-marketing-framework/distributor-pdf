@@ -13,15 +13,19 @@ use DigitalMarketingFramework\Core\Context\ContextInterface;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareInterface;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareTrait;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorContext;
+use DigitalMarketingFramework\Core\Exception\DigitalMarketingFrameworkException;
+use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareInterface;
+use DigitalMarketingFramework\Core\FileStorage\FileStorageAwareTrait;
 use DigitalMarketingFramework\Core\Model\Data\Value\FileValue;
 use DigitalMarketingFramework\Distributor\Core\DataProvider\DataProvider;
 use DigitalMarketingFramework\Distributor\Core\Model\DataSet\SubmissionDataSetInterface;
 use DigitalMarketingFramework\Distributor\Core\Registry\RegistryInterface;
 use DigitalMarketingFramework\Distributor\Pdf\Service\PdfService;
 
-class PdfDataProvider extends DataProvider implements DataProcessorAwareInterface
+class PdfDataProvider extends DataProvider implements DataProcessorAwareInterface, FileStorageAwareInterface
 {
     use DataProcessorAwareTrait;
+    use FileStorageAwareTrait;
 
     public const KEY_FIELD = 'field';
 
@@ -45,6 +49,8 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     public const DEFAULT_USE_CHECKBOX_PARSER = false;
 
+    protected const KEY_UNIQUE_DIRECTORY_IDENTIFIER = 'uniqueDirectoryIdentifier';
+
     public function __construct(
         string $keyword,
         RegistryInterface $registry,
@@ -56,10 +62,19 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     protected function processContext(ContextInterface $context): void
     {
+        $uniqueDirectoryName = $this->pdfService->createUniqueDirectory($this->getConfig(static::KEY_PDF_OUTPUT_DIR));
+        if ($uniqueDirectoryName) {
+            $this->submission->getContext()[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER] = $uniqueDirectoryName;
+        }
     }
 
     protected function process(): void
     {
+        $pdfDirectoryName = $this->submission->getContext()[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER];
+        if (!$pdfDirectoryName) {
+            throw new DigitalMarketingFrameworkException(self::KEY_UNIQUE_DIRECTORY_IDENTIFIER . ' is missing in the context.', 1699453570);
+        }
+
         $dataProcessorContext = new DataProcessorContext($this->submission->getData(), $this->submission->getConfiguration());
         $pdfFormFields = [];
         $pdfFormFieldsMap = $this->getMapConfig(static::KEY_PDF_FORM_FIELDS);
@@ -72,17 +87,22 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
         $settings = [
             'pdfTemplatePath' => $this->getConfig(static::KEY_PDF_TEMPLATE_PATH),
-            'pdfOutputDir' => $this->getConfig(static::KEY_PDF_OUTPUT_DIR),
+            'pdfOutputDir' => $pdfDirectoryName,
             'pdfOutputName' => $this->getConfig(static::KEY_PDF_OUTPUT_NAME),
             'pdfFormFields' => $pdfFormFields,
             'useCheckboxParser' => $this->getConfig(static::KEY_USE_CHECKBOX_PARSER),
         ];
-
-        $pdf = $this->pdfService->generatePdf($settings);
-        if (is_array($pdf)) {
-            $pdfField = FileValue::unpack($pdf);
-            $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
+        $pdfFileIdentifier = $this->pdfService->generatePdf($settings);
+        if (!$pdfFileIdentifier) {
+            throw new DigitalMarketingFrameworkException('Failed to create PDF, no reason given.', 1699453575);
         }
+
+        $pdfField = new FileValue();
+        $pdfField->setFileName($this->getConfig(static::KEY_PDF_OUTPUT_NAME));
+        $pdfField->setRelativePath($pdfFileIdentifier);
+        $pdfField->setMimeType('application/pdf');
+        $pdfField->setPublicUrl($this->fileStorage->getPublicUrl($pdfFileIdentifier));
+        $this->setField($this->getConfig(static::KEY_FIELD), $pdfField);
     }
 
     public static function getSchema(): SchemaInterface
