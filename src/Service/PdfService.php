@@ -22,6 +22,7 @@ class PdfService implements FileStorageAwareInterface
         if (!is_array($settings['pdfFormFields']) || $settings['pdfOutputDir'] == '' || $settings['pdfOutputName'] == '' || $settings['pdfTemplatePath'] == '') {
             return false;
         }
+
         $processedFields = $settings['pdfFormFields'];
         $templateContents = $this->fileStorage->getFileContents($settings['pdfTemplatePath']);
         $tempFile = $this->fileStorage->writeTempFile('', $templateContents, '.pdf');
@@ -33,6 +34,7 @@ class PdfService implements FileStorageAwareInterface
                 if ($settings['useCheckboxParser']) {
                     $pdf->useCheckboxParser = true;
                 }
+                
                 $pdf->Load($processedFields, true);
                 $pdf->Merge();
                 $pdf->Output('F', $tempFile);
