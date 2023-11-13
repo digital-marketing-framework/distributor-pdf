@@ -49,7 +49,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
 
     public const DEFAULT_USE_CHECKBOX_PARSER = false;
 
-    protected const KEY_UNIQUE_DIRECTORY_IDENTIFIER =  'uniqueDirectoryIdentifier';
+    protected const KEY_UNIQUE_DIRECTORY_IDENTIFIER = 'uniqueDirectoryIdentifier';
 
     public function __construct(
         string $keyword,
@@ -74,6 +74,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
         if (!$pdfDirectoryName) {
             throw new DigitalMarketingFrameworkException(self::KEY_UNIQUE_DIRECTORY_IDENTIFIER . ' is missing in the context.', 1699453570);
         }
+
         $dataProcessorContext = new DataProcessorContext($this->submission->getData(), $this->submission->getConfiguration());
         $pdfFormFields = [];
         $pdfFormFieldsMap = $this->getMapConfig(static::KEY_PDF_FORM_FIELDS);
@@ -83,6 +84,7 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
                 $pdfFormFields[$pdfFieldName] = $pdfFieldValue;
             }
         }
+
         $settings = [
             'pdfTemplatePath' => $this->getConfig(static::KEY_PDF_TEMPLATE_PATH),
             'pdfOutputDir' => $pdfDirectoryName,
@@ -94,7 +96,8 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
         if (!$pdfFileIdentifier) {
             throw new DigitalMarketingFrameworkException('Failed to create PDF, no reason given.', 1699453575);
         }
-        $pdfField = new FileValue;
+
+        $pdfField = new FileValue();
         $pdfField->setFileName($this->getConfig(static::KEY_PDF_OUTPUT_NAME));
         $pdfField->setRelativePath($pdfFileIdentifier);
         $pdfField->setMimeType('application/pdf');

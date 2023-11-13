@@ -15,11 +15,11 @@ class PdfService implements FileStorageAwareInterface
     /**
      * @param array<mixed> $settings
      *
-     * @return string|bool the file identifier
+     * @return string|false the file identifier
      */
-    public function generatePdf(array $settings): string|bool
+    public function generatePdf(array $settings): string|false
     {
-        if (!is_array($settings['pdfFormFields']) || $settings['pdfOutputDir'] == '' || $settings['pdfOutputName'] == '' || $settings['pdfTemplatePath'] == '' || $settings['pdfTemplatePath'] == '') {
+        if (!is_array($settings['pdfFormFields']) || $settings['pdfOutputDir'] == '' || $settings['pdfOutputName'] == '' || $settings['pdfTemplatePath'] == '') {
             return false;
         }
         $processedFields = $settings['pdfFormFields'];
@@ -42,6 +42,7 @@ class PdfService implements FileStorageAwareInterface
                 throw new DigitalMarketingFrameworkException($e->getMessage(), $e->getCode(), $e);
             }
         }
+
         return $generatedPdfIdentifier;
     }
 
