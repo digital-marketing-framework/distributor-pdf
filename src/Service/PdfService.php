@@ -34,7 +34,7 @@ class PdfService implements FileStorageAwareInterface
                 if ($settings['useCheckboxParser']) {
                     $pdf->useCheckboxParser = true;
                 }
-                
+
                 $pdf->Load($processedFields, true);
                 $pdf->Merge();
                 $pdf->Output('F', $tempFile);
