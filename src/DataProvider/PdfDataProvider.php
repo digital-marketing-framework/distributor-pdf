@@ -3,6 +3,7 @@
 namespace DigitalMarketingFramework\Distributor\Pdf\DataProvider;
 
 use DigitalMarketingFramework\Core\Context\ContextInterface;
+use DigitalMarketingFramework\Core\Context\WriteableContextInterface;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareInterface;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorAwareTrait;
 use DigitalMarketingFramework\Core\DataProcessor\DataProcessorContext;
@@ -60,17 +61,17 @@ class PdfDataProvider extends DataProvider implements DataProcessorAwareInterfac
         parent::__construct($keyword, $registry, $submission);
     }
 
-    protected function processContext(ContextInterface $context): void
+    protected function processContext(WriteableContextInterface $context): void
     {
         $uniqueDirectoryName = $this->pdfService->createUniqueDirectory($this->getConfig(static::KEY_PDF_OUTPUT_DIR));
         if ($uniqueDirectoryName) {
-            $this->submission->getContext()[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER] = $uniqueDirectoryName;
+            $context[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER] = $uniqueDirectoryName;
         }
     }
 
     protected function process(): void
     {
-        $pdfDirectoryName = $this->submission->getContext()[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER];
+        $pdfDirectoryName = $this->context[self::KEY_UNIQUE_DIRECTORY_IDENTIFIER] ?? null;
         if (!$pdfDirectoryName) {
             throw new DigitalMarketingFrameworkException(self::KEY_UNIQUE_DIRECTORY_IDENTIFIER . ' is missing in the context.', 1699453570);
         }
